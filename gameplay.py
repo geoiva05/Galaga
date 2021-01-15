@@ -24,6 +24,8 @@ explosion_sound = pygame.mixer.Sound(os.path.join('data', 'explosion.flac'))
 My_sql_query = """SELECT Health, Damage from Records WHERE Name = ?"""
 result = cur.execute(My_sql_query, ("Gosha",))
 record = result.fetchall()
+pygame.mixer.music.load(os.path.join('data', 'star-wars-imperial-march.mp3'))
+pygame.mixer.music.set_volume(0.7)
 health = record[0][0]
 
 
@@ -397,8 +399,9 @@ def game_over():
             if event.type == pygame.QUIT:
                 pygame.quit()
             if event.type == pygame.KEYUP:
-                begin_game()
-                waiting = False
+                if event.key == pygame.K_q:
+                    begin_game()
+                    waiting = False
         pygame.display.flip()
 
 
@@ -409,6 +412,8 @@ def begin_game():
         title='Galaga',
         width=750
     )
+
+    pygame.mixer.music.play(loops=-1)
 
     menu.add_text_input('Введите имя (не более 10 символов): ', maxchar=10)
     menu.add_button('Магазин', open_the_shop)
