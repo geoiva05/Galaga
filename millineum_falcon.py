@@ -17,7 +17,6 @@ shoot_sound = pygame.mixer.Sound(os.path.join('data', 'shot.mp3'))
 class Millineum_falcon(pygame.sprite.Sprite):
     image = load_image("falcon.png", colorkey=-1)
 
-
     def __init__(self, *group):
         super().__init__(*group)
         self.screen = screen
