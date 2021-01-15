@@ -8,14 +8,9 @@ from Galaxy_generator import galaxy_generator
 from millineum_falcon import Millineum_falcon
 from TIE_fighter import TIE_fighter
 from StarDesroyer import star_destroyer
-from game_over import game_over
-from load_image import load_image
 from lazer_bullet import lazer_bullet
 from asteroid import asteroid
 from spawned_TIE import spawned_TIE
-from Explosion import Explosion_part1, Explosion_part2, Explosion_part3, Explosion_part4, Explosion_part5, \
-    Explosion_part6, Explosion_part1_TIE, Explosion_part2_TIE, Explosion_part3_TIE, Explosion_part4_TIE, \
-    Explosion_part5_TIE, Explosion_part6_TIE
 
 pygame.init()
 con = sqlite3.connect("Records.db")
@@ -26,10 +21,14 @@ screen = pygame.display.set_mode(size)
 img_dir = os.path.join(os.path.dirname(__file__), 'img')
 snd_dir = os.path.join(os.path.dirname(__file__), 'snd')
 explosion_sound = pygame.mixer.Sound(os.path.join('data', 'explosion.flac'))
+My_sql_query = """SELECT Health, Damage from Records WHERE Name = ?"""
+result = cur.execute(My_sql_query, ("Gosha",))
+record = result.fetchall()
+health = record[0][0]
 
 
 def start_the_game():
-    pause_text = pygame.font.SysFont('Consolas', 32).render('Pause', True, pygame.color.Color('White'))
+    pause_text = pygame.font.SysFont('Consolas', 32).render('Пауза', True, pygame.color.Color('White'))
 
     RUNNING, PAUSE = 0, 1
     state = RUNNING
@@ -38,6 +37,8 @@ def start_the_game():
     global n_TIE
     global wave
     global boss
+    global points
+    global health
 
     galaxy_group = pygame.sprite.Group()
     played_ship = pygame.sprite.Group()
@@ -47,9 +48,7 @@ def start_the_game():
     asteroids = pygame.sprite.Group()
     destroyer_TIEs = pygame.sprite.Group()
     empire_lazer_bullets = pygame.sprite.Group()
-    exp = pygame.sprite.Group()
 
-    points = 0
     falcon = Millineum_falcon(played_ship)
 
     galaxy = galaxy_generator(galaxy_group)
@@ -101,21 +100,21 @@ def start_the_game():
                     state = PAUSE
             if state == PAUSE:
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    if pygame.mouse.get_pos() >= (260, 250):
-                        if pygame.mouse.get_pos() <= (540, 300):
-                            print(n, n_TIE, wave)
+                    if (pygame.mouse.get_pos()[0] >= 260) and (pygame.mouse.get_pos()[1] >= 250):
+                        if (pygame.mouse.get_pos()[0] <= 540) and (pygame.mouse.get_pos()[1] <= 300):
                             start_the_game()
-                    if pygame.mouse.get_pos() >= (260, 330):
-                        if pygame.mouse.get_pos() <= (540, 380):
-                            start_the_game()
+                    if (pygame.mouse.get_pos()[0] >= 260) and (pygame.mouse.get_pos()[1] >= 330):
+                        if (pygame.mouse.get_pos()[0] <= 540) and (pygame.mouse.get_pos()[1] <= 380):
                             n = 5
                             n_TIE = 0
                             wave = 0
+                            boss = False
+                            points = 0
+                            start_the_game()
 
-                    if pygame.mouse.get_pos() >= (260, 410):
-                        if pygame.mouse.get_pos() <= (540, 460):
-                            # state = RUNNING
-                            pass
+                    if (pygame.mouse.get_pos()[0] >= 260) and (pygame.mouse.get_pos()[1] >= 410):
+                        if (pygame.mouse.get_pos()[0] <= 540) and (pygame.mouse.get_pos()[1] <= 460):
+                            pygame.quit()
 
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_a:
@@ -178,8 +177,6 @@ def start_the_game():
                 for el in empire_TIE_fighters:
                     el.shoot(falcon.rect.x, falcon.rect.y, empire_lazer_bullets)
 
-            falcon.mask = pygame.mask.from_surface(falcon.image)
-
             hits_asteroids = pygame.sprite.groupcollide(asteroids, lazer_bullets, True, True)
             hits_TIE = pygame.sprite.groupcollide(empire_TIE_fighters, lazer_bullets, True, True)
             hits_asteroids_with_TIE = pygame.sprite.groupcollide(empire_TIE_fighters, asteroids, True, True)
@@ -214,10 +211,11 @@ def start_the_game():
                 star_destr.health -= falcon.damage
                 if star_destr.health <= 0:
                     star_destr.kill()
-                    explosion_sound.play()
                     sTIE_1.kill()
                     sTIE_2.kill()
                     points += 2000
+
+            falcon.mask = pygame.mask.from_surface(falcon.image)
 
             for el in empire_star_destroyers:
                 el.mask = pygame.mask.from_surface(el.image)
@@ -229,11 +227,14 @@ def start_the_game():
                 if pygame.sprite.collide_mask(falcon, el):
                     game_over_bool = True
 
-            hits_with_falcon = pygame.sprite.spritecollide(falcon, asteroids, True)
+            if pygame.sprite.spritecollide(falcon, asteroids, True):
+                health -= 50
+                if health <= 0:
+                    game_over_bool = True
 
             if pygame.sprite.spritecollide(falcon, empire_lazer_bullets, True):
-                falcon.health -= 100
-                if falcon.health <= 0:
+                health -= 100
+                if health <= 0:
                     game_over_bool = True
 
             if game_over_bool:
@@ -279,12 +280,7 @@ def start_the_game():
             destroyer_TIEs.draw(screen)
             destroyer_TIEs.update()
 
-            for el in hits_with_falcon:
-                falcon.health -= 50
-                if falcon.health <= 0:
-                    game_over_bool = True
-
-            text = font.render(f"HP : {falcon.health}", True, pygame.Color('yellow'))
+            text = font.render(f"HP : {health}", True, pygame.Color('yellow'))
             text_x = 0
             text_y = 0
             screen.blit(text, (text_x, text_y))
@@ -322,27 +318,107 @@ def start_the_game():
     pygame.quit()
 
 
+def set_shop(selected, value):
+    global t
+    fl = 1
+    t = tuple('Set difficulty to {} ({})'.format(selected[0][0][0], value))
+
+
+def buy():
+    hp = 50
+    damag = 10
+    My_sql_query_2 = """SELECT Money from Records WHERE Name = ?"""
+    result = cur.execute(My_sql_query_2, ("Gosha",))
+    mon = result.fetchall()
+    m = mon[0][0]
+    if m > 5000:
+        if fl == 1:
+            if (int(t[-2]) == 1) or (t == 0):
+                My_sql_query = """SELECT Health from Records WHERE Name = ?"""
+                res = cur.execute(My_sql_query, ("Gosha",))
+                rec = res.fetchall()
+                recc = rec[0][0] + hp
+                My_sql_query2 = """UPDATE Records SET Health = ? WHERE Name = ?"""
+                res2 = cur.execute(My_sql_query2, (recc, "Gosha",))
+                con.commit()
+            else:
+                My_sql_query = """SELECT Health from Records WHERE Name = ?"""
+                res2 = cur.execute(My_sql_query, ("Gosha",))
+                rec2 = res2.fetchall()
+                recc2 = rec2[0][0] + damag
+                My_sql_query2 = """UPDATE Records SET Damage = ? WHERE Name = ?"""
+                res2 = cur.execute(My_sql_query2, (recc2, "Gosha",))
+                con.commit()
+        else:
+            My_sql_query = """SELECT Health from Records WHERE Name = ?"""
+            res = cur.execute(My_sql_query, ("Gosha",))
+            rec = res.fetchall()
+            recc = rec[0][0] + hp
+            My_sql_query2 = """UPDATE Records SET Health = ? WHERE Name = ?"""
+            res2 = cur.execute(My_sql_query2, (recc, "Gosha",))
+            con.commit()
+
+
 def open_the_shop():
-    pass
+    global fl
+    fl = 0
+    menu2 = pygame_menu.Menu(
+        height=550,
+        theme=pygame_menu.themes.THEME_DARK,
+        title='Магазин',
+        width=750
+    )
+
+    menu2.add_selector('Выбор: ', [('Увеличение здоровья', 1), ('Увеличение урона', 2)], onchange=set_shop)
+    menu2.add_button('Купить', buy)
+    menu2.add_button('Выйти из магазина', begin_game)
+
+    menu2.mainloop(screen)
 
 
-menu = pygame_menu.Menu(
-    height=550,
-    theme=pygame_menu.themes.THEME_BLUE,
-    title='Welcome',
-    width=750
-)
-
-menu.add_text_input('Введите имя (не более 10 символов): ', maxchar=10)
-menu.add_button('Магазин', open_the_shop)
-menu.add_button('Начать Игру', start_the_game)
-menu.add_button('Выйти', pygame_menu.events.EXIT)
+points = 0
 n = 5
 n_TIE = 0
 wave = 0
 boss = False
 
-if __name__ == '__main__':
-    menu.mainloop(screen)
+def game_over():
+    font = pygame.font.Font(None, 50)
+    text = font.render("Game over!", True, pygame.Color('yellow'))
+    text_x = width // 2 - text.get_width() // 2
+    text_y = height // 2 - text.get_height() // 2
+    screen.blit(text, (text_x, text_y))
+    fps = 60
+    clock = pygame.time.Clock()
+    waiting = True
+    while waiting:
+        clock.tick(fps)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+            if event.type == pygame.KEYUP:
+                begin_game()
+                waiting = False
+        pygame.display.flip()
+
+
+def begin_game():
+    menu = pygame_menu.Menu(
+        height=550,
+        theme=pygame_menu.themes.THEME_DARK,
+        title='Galaga',
+        width=750
+    )
+
+    menu.add_text_input('Введите имя (не более 10 символов): ', maxchar=10)
+    menu.add_button('Магазин', open_the_shop)
+    menu.add_button('Начать Игру', start_the_game)
+    menu.add_button('Выйти', pygame_menu.events.EXIT)
+
+    if __name__ == '__main__':
+        menu.mainloop(screen)
+
+
+begin_game()
 
 con.close()

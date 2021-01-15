@@ -1,7 +1,5 @@
 import pygame
-import random
 
-pygame.init()
 size = width, height = 800, 600
 screen = pygame.display.set_mode(size)
 fps = 60
