@@ -14,7 +14,6 @@ def game_over():
     text_x = width // 2 - text.get_width() // 2
     text_y = height // 2 - text.get_height() // 2
     screen.blit(text, (text_x, text_y))
-    pygame.display.flip()
     waiting = True
     while waiting:
         clock.tick(fps)
@@ -23,5 +22,6 @@ def game_over():
                 pygame.quit()
             if event.type == pygame.KEYUP:
                 waiting = False
+        pygame.display.flip()
 
 

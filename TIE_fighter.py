@@ -17,7 +17,7 @@ class TIE_fighter(pygame.sprite.Sprite):
         self.image = pygame.transform.scale(TIE_fighter.image, (91, 80))
         self.rect = self.image.get_rect()
         self.rect.x = random.randrange(800 - self.rect.width)
-        self.rect.y = random.randrange(0, 34)
+        self.rect.y = random.randrange(20, 100)
         self.mask = pygame.mask.from_surface(self.image)
         self.speedy = random.randrange(1, 3)
         self.speedx = random.randrange(-3, 3)

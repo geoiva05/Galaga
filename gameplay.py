@@ -9,9 +9,13 @@ from millineum_falcon import Millineum_falcon
 from TIE_fighter import TIE_fighter
 from StarDesroyer import star_destroyer
 from game_over import game_over
+from load_image import load_image
 from lazer_bullet import lazer_bullet
 from asteroid import asteroid
 from spawned_TIE import spawned_TIE
+from Explosion import Explosion_part1, Explosion_part2, Explosion_part3, Explosion_part4, Explosion_part5, \
+    Explosion_part6, Explosion_part1_TIE, Explosion_part2_TIE, Explosion_part3_TIE, Explosion_part4_TIE, \
+    Explosion_part5_TIE, Explosion_part6_TIE
 
 pygame.init()
 con = sqlite3.connect("Records.db")
@@ -19,6 +23,9 @@ cur = con.cursor()
 os.environ['SDL_VIDEO_CENTERED'] = '1'
 size = width, height = 800, 600
 screen = pygame.display.set_mode(size)
+img_dir = os.path.join(os.path.dirname(__file__), 'img')
+snd_dir = os.path.join(os.path.dirname(__file__), 'snd')
+explosion_sound = pygame.mixer.Sound(os.path.join('data', 'explosion.flac'))
 
 
 def start_the_game():
@@ -40,6 +47,7 @@ def start_the_game():
     asteroids = pygame.sprite.Group()
     destroyer_TIEs = pygame.sprite.Group()
     empire_lazer_bullets = pygame.sprite.Group()
+    exp = pygame.sprite.Group()
 
     points = 0
     falcon = Millineum_falcon(played_ship)
@@ -178,6 +186,18 @@ def start_the_game():
             hits_destroyers = pygame.sprite.groupcollide(empire_star_destroyers, lazer_bullets, False, True)
             hits_TIE_spawned = pygame.sprite.groupcollide(destroyer_TIEs, lazer_bullets, True, True)
 
+            for el in hits_asteroids:
+                explosion_sound.play()
+
+            for el in hits_TIE:
+                explosion_sound.play()
+
+            for el in hits_asteroids_with_TIE:
+                explosion_sound.play()
+
+            for el in hits_TIE_spawned:
+                explosion_sound.play()
+
             for el in hits_TIE:
                 points += 150
 
@@ -194,6 +214,7 @@ def start_the_game():
                 star_destr.health -= falcon.damage
                 if star_destr.health <= 0:
                     star_destr.kill()
+                    explosion_sound.play()
                     sTIE_1.kill()
                     sTIE_2.kill()
                     points += 2000
@@ -208,10 +229,7 @@ def start_the_game():
                 if pygame.sprite.collide_mask(falcon, el):
                     game_over_bool = True
 
-            if pygame.sprite.spritecollide(falcon, asteroids, True):
-                falcon.health -= 50
-                if falcon.health <= 0:
-                    game_over_bool = True
+            hits_with_falcon = pygame.sprite.spritecollide(falcon, asteroids, True)
 
             if pygame.sprite.spritecollide(falcon, empire_lazer_bullets, True):
                 falcon.health -= 100
@@ -233,6 +251,7 @@ def start_the_game():
                 My_sql_query = """UPDATE Records SET money = ? WHERE Name = ?"""
                 cur.execute(My_sql_query, (new_money, "Gosha",))
                 con.commit()
+                explosion_sound.play()
                 game_over()
                 running = False
 
@@ -259,6 +278,11 @@ def start_the_game():
 
             destroyer_TIEs.draw(screen)
             destroyer_TIEs.update()
+
+            for el in hits_with_falcon:
+                falcon.health -= 50
+                if falcon.health <= 0:
+                    game_over_bool = True
 
             text = font.render(f"HP : {falcon.health}", True, pygame.Color('yellow'))
             text_x = 0

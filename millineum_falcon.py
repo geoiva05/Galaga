@@ -1,5 +1,6 @@
 import pygame
 import sqlite3
+import os
 from load_image import load_image
 from lazer_bullet import lazer_bullet
 
@@ -8,10 +9,14 @@ con = sqlite3.connect("Records.db")
 cur = con.cursor()
 size = width, height = 800, 600
 screen = pygame.display.set_mode(size)
+img_dir = os.path.join(os.path.dirname(__file__), 'img')
+snd_dir = os.path.join(os.path.dirname(__file__), 'snd')
+shoot_sound = pygame.mixer.Sound(os.path.join('data', 'shot.mp3'))
 
 
 class Millineum_falcon(pygame.sprite.Sprite):
     image = load_image("falcon.png", colorkey=-1)
+
 
     def __init__(self, *group):
         super().__init__(*group)
@@ -46,3 +51,4 @@ class Millineum_falcon(pygame.sprite.Sprite):
 
     def shoot(self, x_pli, y_pli, *group):
         self.bullet = lazer_bullet(self.rect.centerx, self.rect.top, x_pli, y_pli, group)
+        shoot_sound.play()
