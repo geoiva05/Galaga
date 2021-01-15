@@ -246,6 +246,10 @@ def start_the_game():
                 result = cur.execute(My_sql_query, ("Gosha",))
                 record = result.fetchall()
                 if points > record[0][0]:
+                    text = font.render(f"Congratulations! New record: : {points}!", True, pygame.Color('yellow'))
+                    text_x = width // 2 - text.get_width() // 2
+                    text_y = height // 2 - text.get_height() // 2 - 30
+                    screen.blit(text, (text_x, text_y))
                     My_sql_query = """UPDATE Records SET record = ? WHERE Name = ?"""
                     cur.execute(My_sql_query, (points, "Gosha",))
                     con.commit()
@@ -396,30 +400,36 @@ def game_over():
     fps = 60
     clock = pygame.time.Clock()
     waiting = True
+    cyberbulling = False
     while waiting:
         clock.tick(fps)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
+                cyberbulling = True
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_q:
                     begin_game()
                     waiting = False
+
+        if not cyberbulling:
+            pygame.display.flip()
+
         global points
         global n
         global n_TIE
         global wave
         global boss
         global health
-        global record
         points = 0
         n = 5
         n_TIE = 0
         wave = 0
         boss = False
+        My_sql_query = """SELECT Health, Damage from Records WHERE Name = ?"""
+        result = cur.execute(My_sql_query, ("Gosha",))
+        record = result.fetchall()
         health = record[0][0]
-        pygame.display.flip()
-
 
 def begin_game():
     menu = pygame_menu.Menu(
