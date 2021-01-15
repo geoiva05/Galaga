@@ -27,8 +27,8 @@ record = result.fetchall()
 pygame.mixer.music.load(os.path.join('data', 'star-wars-imperial-march.mp3'))
 volume = 0.7
 pygame.mixer.music.set_volume(volume)
-play_music = True
 health = record[0][0]
+pygame.mixer.music.play(loops=-1)
 
 
 def start_the_game():
@@ -405,31 +405,20 @@ def game_over():
                 if event.key == pygame.K_q:
                     begin_game()
                     waiting = False
+        global points
+        global n
+        global n_TIE
+        global wave
+        global boss
+        global health
+        global record
+        points = 0
+        n = 5
+        n_TIE = 0
+        wave = 0
+        boss = False
+        health = record[0][0]
         pygame.display.flip()
-
-
-def switch_on():
-    global play_music
-    if play_music:
-        play_music = False
-        pygame.mixer.music.pause()
-    elif not play_music:
-        play_music = True
-        pygame.mixer.music.unpause()
-
-
-def increase_volume():
-    global volume
-    if volume < 1:
-        volume += 0.1
-    pygame.mixer.music.set_volume(volume)
-
-
-def reduce_volume():
-    global volume
-    if volume > 0:
-        volume -= 0.1
-    pygame.mixer.music.set_volume(volume)
 
 
 def begin_game():
@@ -440,21 +429,41 @@ def begin_game():
         width=750
     )
 
-    pygame.mixer.music.play(loops=-1)
-
-    menu.add_text_input('Введите имя (не более 10 символов): ', maxchar=10)
+    menu.add_text_input('Логин: ', maxchar=10)
     # menu.add_button('Об игре', playing_the_game)
     menu.add_button('Магазин', open_the_shop)
     menu.add_button('Начать Игру', start_the_game)
-    menu.add_button('Включить/Выключить музыку', switch_on())
-    menu.add_button('+', increase_volume())
-    menu.add_button('-', reduce_volume())
+    menu.add_button('Включитьму музыку', turn_on)
+    menu.add_button('Выключить музыку', turn_of)
+    menu.add_button('Увеличить громкость музыки', increase)
+    menu.add_button('Уменьшить громкость музыки', reduce)
     menu.add_button('Выйти', pygame_menu.events.EXIT)
 
     if __name__ == '__main__':
         menu.mainloop(screen)
 
 
-begin_game()
+def turn_on():
+    pygame.mixer.music.unpause()
 
+
+def turn_of():
+    pygame.mixer.music.pause()
+
+
+def increase():
+    global volume
+    if volume < 1:
+        volume += 0.1
+    pygame.mixer.music.set_volume(volume)
+
+
+def reduce():
+    global volume
+    if volume > 0:
+        volume -= 0.1
+    pygame.mixer.music.set_volume(volume)
+
+
+begin_game()
 con.close()
