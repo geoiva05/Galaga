@@ -16,6 +16,7 @@ class lazer_bullet(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.bottom = y
         self.rect.centerx = x
+        self.mask = pygame.mask.from_surface(self.image)
         if y_pli > y:
             self.speedy = 10
         elif y_pli < y:

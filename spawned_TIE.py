@@ -16,6 +16,8 @@ class spawned_TIE(pygame.sprite.Sprite):
         self.screen = screen
         self.image = pygame.transform.scale(spawned_TIE.image, (91, 80))
         self.rect = self.image.get_rect()
+        self.mask = pygame.mask.from_surface(self.image)
+
 
     def shoot(self, x_pli, y_pli, *group):
         self.bullet = empire_lazer_bullet(self.rect.centerx, self.rect.centery, x_pli, y_pli, group)

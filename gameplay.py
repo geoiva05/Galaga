@@ -170,6 +170,8 @@ def start_the_game():
                 for el in empire_TIE_fighters:
                     el.shoot(falcon.rect.x, falcon.rect.y, empire_lazer_bullets)
 
+            falcon.mask = pygame.mask.from_surface(falcon.image)
+
             hits_asteroids = pygame.sprite.groupcollide(asteroids, lazer_bullets, True, True)
             hits_TIE = pygame.sprite.groupcollide(empire_TIE_fighters, lazer_bullets, True, True)
             hits_asteroids_with_TIE = pygame.sprite.groupcollide(empire_TIE_fighters, asteroids, True, True)
@@ -195,8 +197,6 @@ def start_the_game():
                     sTIE_1.kill()
                     sTIE_2.kill()
                     points += 2000
-
-            falcon.mask = pygame.mask.from_surface(falcon.image)
 
             for el in empire_star_destroyers:
                 el.mask = pygame.mask.from_surface(el.image)

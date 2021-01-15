@@ -15,6 +15,7 @@ class empire_lazer_bullet(pygame.sprite.Sprite):
         self.image.fill("red")
         self.rect = self.image.get_rect()
         self.rect.bottom = y
+        self.mask = pygame.mask.from_surface(self.image)
         self.rect.centerx = x
         if y_pli > y:
             self.speedy = 7
